@@ -1,22 +1,19 @@
 import kMeans from './k-means';
 import util from './util';
 
-const NUM_CENTROIDS = 8;
 const NUM_OBS = 1000;
 const MAX_X = 800;
 const MAX_Y = 600;
 const COLORS = [ 'blue', 'red', 'gold', 'indigo', 'magenta', 'yellow', 'silver', 'aqua' ]
 
-const observations = util.generateRandomObservations(NUM_OBS, MAX_X, MAX_Y);
-const centroids = util.generateRandomCentroids(NUM_CENTROIDS, MAX_X, MAX_Y);
-const gen = kMeans(centroids, observations);
-
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
+const formEl = document.querySelector('form');
+const runBtn = document.querySelector('#run-btn');
+const numCentroidsEl = document.querySelector('#num-centroids');
+const numObservationsEl = document.querySelector('#num-observations');
 
 const render = (ctx, centroids, clusters) => {
-  
-
   for (let i = 0; i < clusters.length; i++) {
     const cluster = clusters[i];
 
@@ -34,19 +31,33 @@ const render = (ctx, centroids, clusters) => {
   }
 }
 
-const updateFn = () => {
-  const { value, done } = gen.next();  
+const updateFn = (gen) => {
+  return () => {
+    const { value, done } = gen.next();  
 
-  if (!done) {
-    const { centroids: updated, clusters } = value;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    render(ctx, updated, clusters);
-    setTimeout(updateFn, 200);
-  } else {
-    console.log('Done');
-  }
+    if (!done) {
+      const { centroids: updated, clusters } = value;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      render(ctx, updated, clusters);
+      setTimeout(updateFn(gen), 200);
+    } else {
+      console.log('Done');
+      runBtn.disabled = false;
+    }
+  };
 };
 
-render(ctx, centroids, [ observations ]);
+formEl.onsubmit = function(event) {
+  event.stopPropagation();
 
-setTimeout(updateFn, 200);
+  runBtn.disabled = true;
+
+  const observations = util.generateRandomObservations(Number(numObservationsEl.value), MAX_X, MAX_Y);
+  const centroids = util.generateRandomCentroids(Number(numCentroidsEl.value), MAX_X, MAX_Y);
+  const gen = kMeans(centroids, observations);
+
+  render(ctx, centroids, [ observations ]);
+  setTimeout(updateFn(gen), 200);
+
+  return false;
+}
