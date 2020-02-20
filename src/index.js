@@ -1,7 +1,6 @@
 import kMeans from './k-means';
 import util from './util';
 
-const NUM_OBS = 1000;
 const MAX_X = 800;
 const MAX_Y = 600;
 const COLORS = [ 'blue', 'red', 'gold', 'indigo', 'magenta', 'yellow', 'silver', 'aqua' ]
